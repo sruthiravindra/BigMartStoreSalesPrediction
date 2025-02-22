@@ -1,0 +1,1 @@
+Validation Status col Item_Outlet_Sales: True
