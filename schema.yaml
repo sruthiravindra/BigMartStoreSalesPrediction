@@ -10,7 +10,6 @@ COLUMNS:
   Outlet_Size: string 
   Outlet_Location_Type: string 
   Outlet_Type: string 
-  Item_Outlet_Sales: float64
 
 TARGET_COLUMN:
   Item_Outlet_Sales: float64
