@@ -18,7 +18,7 @@ STAGE_NAME="Data Validation Stage"
 try:
     logger.info(f">>>> stage {STAGE_NAME} started <<<<")
     obj = DataValidationTrainingPipeline()
-    status = obj.main()
+    status, mismatched_cols = obj.main()
     logger.info(f">>>> stage {STAGE_NAME} completed with status {status}<<<<")
 except Exception as e:
     logger.exception(e)

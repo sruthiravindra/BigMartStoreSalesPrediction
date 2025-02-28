@@ -1,1 +1,1 @@
-Validation Status col: True
+Validation Status : DATATYPE_MISMATCH

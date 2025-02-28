@@ -3,6 +3,7 @@ from salesPrediction import logger
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from salesPrediction.config.configuration import DataTransformationConfig
+import json
 
 class DataTransformation:
     def __init__(self, config:DataTransformationConfig):
@@ -22,3 +23,18 @@ class DataTransformation:
 
         print(train_data.shape)
         print(test_data.shape)
+    
+    def convert_column_datatype(self):
+        try:
+
+            with open(os.path.join("artifacts", "data_validation", "status_data_type.json"), "r") as f:
+                mismatched_cols =  json.loads(f.read())
+                print(mismatched_cols)
+
+            data = pd.read_csv(self.config.train_data_path)
+            for col, dtype_info in mismatched_cols.items():
+                if dtype_info == "string":
+                    data[col].astype("string")
+
+        except Exception as e:
+            raise e

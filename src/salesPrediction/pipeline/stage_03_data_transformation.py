@@ -2,6 +2,7 @@ from salesPrediction.config.configuration import ConfigurationManager
 from salesPrediction.components.data_transformation import DataTransformation
 from salesPrediction import logger
 from pathlib import Path
+from typing import Dict
 
 STAGE_NAME = "Data Transformation"
 
@@ -12,11 +13,17 @@ class DataTransformationPipeLine:
 
     def main(self):
         try:
-            
-            if self.validation_status == True:
+
+            if self.validation_status != False:
+
                 config = ConfigurationManager()
                 data_transformation_config = config.get_data_transformation_config()
                 data_transformation = DataTransformation(config=data_transformation_config)
+
+                # check if any datatype mismatch has occurred
+                if self.validation_status == "DATATYPE_MISMATCH":
+                    data_transformation.convert_column_datatype(self.mismatched_cols)            
+                
                 data_transformation.train_test_splitting()
             else:
                 raise Exception("Your dataset is not valid")

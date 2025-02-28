@@ -1,0 +1,30 @@
+{
+    "Item_Identifier": {
+        "expected": "string",
+        "actual": "object"
+    },
+    "Item_Fat_Content": {
+        "expected": "string",
+        "actual": "object"
+    },
+    "Item_Type": {
+        "expected": "string",
+        "actual": "object"
+    },
+    "Outlet_Identifier": {
+        "expected": "string",
+        "actual": "object"
+    },
+    "Outlet_Size": {
+        "expected": "string",
+        "actual": "object"
+    },
+    "Outlet_Location_Type": {
+        "expected": "string",
+        "actual": "object"
+    },
+    "Outlet_Type": {
+        "expected": "string",
+        "actual": "object"
+    }
+}

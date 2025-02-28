@@ -41,7 +41,8 @@ class ConfigurationManager:
             STATUS_FILE=config.STATUS_FILE,
             unzip_data_dir = config.unzip_data_dir,
             all_schema=schema,
-            target_variable = target_variable
+            target_variable = target_variable,
+            STATUS_DATA_TYPE_FILE = config.STATUS_DATA_TYPE_FILE
         )
 
         return data_validation_config
@@ -56,6 +57,7 @@ class ConfigurationManager:
             data_path=config.data_path,
             train_data_path=config.train_data_path,
             test_data_path=config.test_data_path,
+            mismatch_data_type_path = config.mismatch_data_type_path
         )
 
         return data_transformation_config

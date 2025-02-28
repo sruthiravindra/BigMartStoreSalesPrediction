@@ -15,6 +15,7 @@ class DataValidationConfig:
     STATUS_FILE: str
     all_schema: dict
     target_variable: dict
+    STATUS_DATA_TYPE_FILE: Path
 
 @dataclass(frozen=True)
 class DataTransformationConfig:
@@ -22,3 +23,4 @@ class DataTransformationConfig:
     data_path: Path
     train_data_path: Path
     test_data_path: Path
+    mismatch_data_type_path: Path
