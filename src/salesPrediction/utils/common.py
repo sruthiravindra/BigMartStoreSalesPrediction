@@ -2,6 +2,7 @@ import os
 from box.exceptions import BoxValueError
 import yaml
 from salesPrediction import logger
+from salesPrediction.constants import *
 import json
 import joblib
 from ensure import ensure_annotations
@@ -123,3 +124,18 @@ def get_size(path: Path) -> str:
     """
     size_in_kb = round(os.path.getsize(path)/1024)
     return f"~ {size_in_kb} KB"
+
+@ensure_annotations
+def get_validation_status() -> str:
+    """
+    read the status file created by the validation component
+    
+    Returns:
+        string : validation status
+    """
+    with open(VALIDATION_STATUS_PATH, "r") as f:
+        validation_str =  f.read()
+        status = validation_str.split(":")[1].strip()
+        print(status)
+
+    return status

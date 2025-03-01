@@ -13,7 +13,7 @@ class DataTransformation:
         # we already have train and test data set in the resources folder, we only need to copy them 
         train_data = pd.read_csv(self.config.train_data_path)
         test_data = pd.read_csv(self.config.test_data_path)
-        print(self.config.data_path)
+        
         train_data.to_csv(os.path.join(self.config.data_path, "Train.csv"), index=False)
         test_data.to_csv(os.path.join(self.config.data_path, "Test.csv"), index= False)
 
@@ -27,14 +27,15 @@ class DataTransformation:
     def convert_column_datatype(self):
         try:
 
-            with open(os.path.join("artifacts", "data_validation", "status_data_type.json"), "r") as f:
+            with open(self.config.mismatch_data_type_path, "r") as f:
                 mismatched_cols =  json.loads(f.read())
-                print(mismatched_cols)
 
             data = pd.read_csv(self.config.train_data_path)
             for col, dtype_info in mismatched_cols.items():
                 if dtype_info == "string":
                     data[col].astype("string")
+                    logger.info("Converted data type of column {col} to {dtype_info}")
+
 
         except Exception as e:
             raise e
