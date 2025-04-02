@@ -27,8 +27,10 @@ class DataTransformationPipeLine:
 
                 # check if any datatype mismatch has occurred
                 if validation_status == "DATATYPE_MISMATCH":
-                    data_transformation.convert_column_datatype()            
-                
+                    data_transformation.convert_column_datatype()   
+
+                # perform transformation      
+                data_transformation.clean_data()
                 data_transformation.train_test_splitting()
 
             else:

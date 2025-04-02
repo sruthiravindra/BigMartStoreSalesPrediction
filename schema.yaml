@@ -1,15 +1,35 @@
 COLUMNS:
   Item_Identifier: string 
   Item_Weight: float64
-  Item_Fat_Content: string
+  Item_Fat_Content: object
   Item_Visibility: float64
-  Item_Type: string 
+  Item_Type: object 
   Item_MRP: float64
   Outlet_Identifier: string 
   Outlet_Establishment_Year: int64  
-  Outlet_Size: string 
-  Outlet_Location_Type: string 
-  Outlet_Type: string 
+  Outlet_Size: object 
+  Outlet_Location_Type: object 
+  Outlet_Type: object 
 
 TARGET_COLUMN:
   Item_Outlet_Sales: float64
+
+NUMERICAL_FEATURES:
+  - Item_Weight
+  - Item_Visibility
+  - Item_MRP
+  - Outlet_Establishment_Year
+
+CATEGORICAL_FEATURES:
+  - Item_Fat_Content
+  - Item_Type
+  - Outlet_Size
+  - Outlet_Location_Type
+  - Outlet_Type
+
+FEATURES_TO_DROP:
+  - Item_Identifier
+  - Outlet_Identifier  # These may not be useful for modeling
+  - Outlet_Type
+  - Item_Type
+  - Item_Type_Feature_Encoded

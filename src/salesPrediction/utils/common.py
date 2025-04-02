@@ -9,6 +9,7 @@ from ensure import ensure_annotations
 from box import ConfigBox
 from pathlib import Path
 from typing import Any
+from typing import Tuple, Dict
 
 @ensure_annotations
 def read_yaml(path_to_yaml: Path) -> ConfigBox:
@@ -139,3 +140,27 @@ def get_validation_status() -> str:
         print(status)
 
     return status
+
+@ensure_annotations
+def get_complete_schema_structure(path_to_yaml: Path) -> Tuple:
+    """
+    read the schema file and return merge the dependent and independent variables and return as a dict
+    Args: 
+        path_to_yaml (str): path like input
+
+    Returns:
+         Tuple[Dict, Dict]: A tuple containing two dictionaries:
+            - The first dictionary (cols) contains both independent and dependent variables.
+            - The second dictionary (test_cols) contains only independent variables.
+
+
+    """
+
+    schema = read_yaml(path_to_yaml)
+
+    test_cols = schema.COLUMNS
+    cols = schema.COLUMNS
+    target = schema.TARGET_COLUMN
+    cols.update(target)
+
+    return cols, test_cols, schema.FEATURES_TO_DROP
