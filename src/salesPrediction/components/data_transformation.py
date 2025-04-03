@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 from salesPrediction.config.configuration import DataTransformationConfig
 import json
+import joblib
+
 
 class DataTransformation:
     def __init__(self, config:DataTransformationConfig):
@@ -12,12 +14,21 @@ class DataTransformation:
         # we already have train and test data set in the resources folder, we only need to copy them 
         self.train_data = pd.read_csv(self.config.train_data_path)
         self.test_data = pd.read_csv(self.config.test_data_path)
-    
+
+        self.o_encoder_outlet_type = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+        self.l_encoder_outlet_type = LabelEncoder()
+
+        self.o_encoder_item_type = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+        self.l_encoder_item_type = LabelEncoder()
+
     def train_test_splitting(self):
         
         print(self.train_data.isna().sum())
         self.train_data.to_csv(os.path.join(self.config.data_path, "Train.csv"), index=False)
         self.test_data.to_csv(os.path.join(self.config.data_path, "Test.csv"), index= False)
+
+        ### save encoders
+        self.__save_encoders()
 
         logger.info("Completed saving train and test data to transformation folder")
         logger.info(self.train_data.shape)
@@ -49,17 +60,28 @@ class DataTransformation:
         except Exception as e:
             raise e
         
-    def clean_data(self):
+    def transform_train(self):
 
-        logger.info(f"Start cleaning training data")
+        logger.info(f"Start transforming training data")
         df = self.train_data
         df = self.__clean_categorical_features(df)
         df = self.__handle_outlet_size_missing_values(df)
         df = self.__handle_item_weight_missing_values(df)
-        df = self.__encode_binary_features(df)
+        df = self.__fit_and_encode_binary_features(df)
         self.train_data = df
-        logger.info(f"Completed cleaning training data")
+        logger.info(f"Completed transforming training data")
 
+    def transform_test(self):
+        logger.info("Start Transforming test data")
+        df = self.test_data
+        df = self.__clean_categorical_features(df)
+        df = self.__handle_outlet_size_missing_values(df)
+        df = self.__handle_item_weight_missing_values(df)
+        df = self.__transform_only_binary_features(df)  # Use previously fitted encoders
+        self.test_data = df
+        logger.info(f"Completed transforming test data")
+
+        return df
     
     def __clean_categorical_features(self, df):
         """Standardize categorical column values before encoding."""
@@ -138,22 +160,31 @@ class DataTransformation:
         )
 
         # Step 2: Final fallback with global median (if any NaNs remain)
-        df['Item_Weight'].fillna(df['Item_Weight'].median(), inplace=True)
+        df['Item_Weight'] = df['Item_Weight'].fillna(df['Item_Weight'].median())
 
 
         return df
     
-    def __encode_binary_features(self, df):
+    def __fit_and_encode_binary_features(self, df):
         
         df = self.__encode_fat_content(df)
-        df = self.__encode_outlet_type(df)
-        df = self.__encode_item_type(df)
+        df = self.__encode_outlet_type(df, is_train=True)
+        df = self.__encode_item_type(df, is_train=True)
         df = self.__encode_outlet_size(df)
         df = self.__encode_outlet_location(df)
 
         return df
 
-    
+    def __transform_only_binary_features(self, df):
+        
+        df = self.__encode_fat_content(df)
+        df = self.__encode_outlet_type(df, is_train=False)
+        df = self.__encode_item_type(df, is_train=False)
+        df = self.__encode_outlet_size(df)
+        df = self.__encode_outlet_location(df)
+
+        return df
+        
     def __encode_fat_content(self, df):
 
         """Apply Label Encoding to binary categorical columns."""
@@ -161,35 +192,34 @@ class DataTransformation:
 
         return df
         
-    def __encode_outlet_type(self, df):
+    def __encode_outlet_type(self, df, is_train=True):
         """
         Both one hot and label encoding has been performed as at this stage we are not sure what model will be using on this dataset
         """
 
+        if is_train:
+                encoded_features = self.o_encoder_outlet_type.fit_transform(df[['Outlet_Type']])
+                df['Outlet_Type_LabelEncoded'] = self.l_encoder_outlet_type.fit_transform(df['Outlet_Type'])
+        else:
+            encoded_features = self.o_encoder_outlet_type.transform(df[['Outlet_Type']])
+            df['Outlet_Type_LabelEncoded'] = self.l_encoder_outlet_type.transform(df['Outlet_Type'])
 
-        """Apply One Hot Encoding """
-        o_encoder = OneHotEncoder(handle_unknown="ignore", sparse_output = False)
-        encoded_features = o_encoder.fit_transform(df[['Outlet_Type']])
-
-        encoded_df = pd.DataFrame(encoded_features, columns = o_encoder.get_feature_names_out())
-
-        df  = pd.concat([df, encoded_df], axis=1)
-
-        """Apply Label Encoding on Outlet_Type """
-        l_encoder = LabelEncoder()
-        df['Outlet_Type_LabelEncoded'] = l_encoder.fit_transform(df['Outlet_Type'])
-        # df = df.drop(columns=['Outlet_Type'])
-        df.head()
+        encoded_df = pd.DataFrame(encoded_features, columns=self.o_encoder_outlet_type.get_feature_names_out())
+        df = pd.concat([df, encoded_df], axis=1)
 
         return df
     
-    def __encode_item_type(self, df):
+    def __encode_item_type(self, df, is_train=True):
 
         """Apply Feature Reduction and then One Hot Encoding on Item_Type"""
         df['Item_Type_Feature_Encoded'] = df['Item_Type'].apply(self.__group_item_type)
-        o_encoder = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
-        encoded_features = o_encoder.fit_transform(df[['Item_Type_Feature_Encoded']])
-        encoded_df = pd.DataFrame(encoded_features, columns=o_encoder.get_feature_names_out())
+
+        if is_train:
+            encoded_features = self.o_encoder_item_type.fit_transform(df[['Item_Type_Feature_Encoded']])
+        else:
+            encoded_features = self.o_encoder_item_type.transform(df[['Item_Type_Feature_Encoded']])
+
+        encoded_df = pd.DataFrame(encoded_features, columns=self.o_encoder_item_type.get_feature_names_out())
         df = pd.concat([df,encoded_df], axis=1)
 
         return df
@@ -206,3 +236,8 @@ class DataTransformation:
         location_mapping = {'Tier 1': 0, 'Tier 2': 1, 'Tier 3': 2}
         df['Outlet_Location_Type'] = df['Outlet_Location_Type'].map(location_mapping)
         return df
+    
+    def __save_encoders(self):
+        joblib.dump(self.o_encoder_outlet_type, os.path.join(self.config.root_dir,'o_encoder_outlet_type.pkl'))
+        joblib.dump(self.l_encoder_outlet_type, os.path.join(self.config.root_dir,'l_encoder_outlet_type.pkl'))
+        joblib.dump(self.o_encoder_item_type, os.path.join(self.config.root_dir,'o_encoder_item_type.pkl'))

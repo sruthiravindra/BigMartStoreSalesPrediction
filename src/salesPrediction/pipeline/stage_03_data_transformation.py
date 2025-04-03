@@ -30,7 +30,8 @@ class DataTransformationPipeLine:
                     data_transformation.convert_column_datatype()   
 
                 # perform transformation      
-                data_transformation.clean_data()
+                data_transformation.transform_train()
+                data_transformation.transform_test()
                 data_transformation.train_test_splitting()
 
             else:
